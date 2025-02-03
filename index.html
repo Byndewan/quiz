@@ -1,0 +1,514 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Language Master Quiz 🌍</title>
+    <style>
+        :root {
+            --primary: #6366f1;
+            --secondary: #4f46e5;
+            --correct: #10b981;
+            --incorrect: #ef4444;
+            --background: #f8fafc;
+            --text: #1e293b;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Inter', system-ui, -apple-system, sans-serif;
+        }
+
+        body {
+            background: linear-gradient(135deg, #e0e7ff 0%, #f3f4ff 100%);
+            min-height: 100vh;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 2rem;
+            color: var(--text);
+        }
+
+        .quiz-container {
+            background: rgba(255, 255, 255, 0.95);
+            backdrop-filter: blur(10px);
+            width: 100%;
+            max-width: 800px;
+            border-radius: 1.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+            padding: 2.5rem;
+            transition: transform 0.3s ease;
+        }
+
+        .quiz-container:hover {
+            transform: translateY(-5px);
+        }
+
+        .header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+        }
+
+        .stats {
+            display: flex;
+            gap: 1.5rem;
+        }
+
+        .stat-box {
+            background: var(--background);
+            padding: 0.8rem 1.5rem;
+            border-radius: 999px;
+            display: flex;
+            align-items: center;
+            gap: 0.8rem;
+            box-shadow: 0 2px 6px rgba(0,0,0,0.05);
+        }
+
+        .stat-box span {
+            font-weight: 600;
+            color: var(--primary);
+        }
+
+        .progress-container {
+            height: 8px;
+            background: #e2e8f0;
+            border-radius: 999px;
+            overflow: hidden;
+            margin: 1.5rem 0;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--secondary) 100%);
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        .question-box {
+            margin: 2rem 0;
+        }
+
+        .question-number {
+            color: var(--primary);
+            font-size: 0.9rem;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.4rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+
+        .options-grid {
+            display: grid;
+            grid-template-columns: repeat(2, 1fr);
+            gap: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .option-btn {
+            padding: 1.2rem;
+            border: 2px solid #e2e8f0;
+            border-radius: 1rem;
+            background: white;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            text-align: left;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .option-btn:hover:not(.selected) {
+            border-color: var(--primary);
+            transform: translateY(-2px);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.1);
+        }
+
+        .option-btn::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: -100%;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(90deg, transparent, rgba(99, 102, 241, 0.1), transparent);
+            transition: 0.5s;
+        }
+
+        .option-btn:hover::before {
+            left: 100%;
+        }
+
+        .selected {
+            border-color: var(--primary);
+            background: #f0f4ff;
+        }
+
+        .correct {
+            border-color: var(--correct) !important;
+            background: #ecfdf5 !important;
+        }
+
+        .incorrect {
+            border-color: var(--incorrect) !important;
+            background: #fef2f2 !important;
+        }
+
+        .navigation {
+            display: flex;
+            justify-content: space-between;
+            gap: 1rem;
+        }
+
+        .nav-btn {
+            padding: 0.8rem 1.5rem;
+            border: none;
+            border-radius: 0.8rem;
+            font-weight: 600;
+            transition: all 0.2s ease;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-btn:disabled {
+            opacity: 0.7;
+            cursor: not-allowed;
+        }
+
+        .prev-btn {
+            background: #f1f5f9;
+            color: var(--text);
+        }
+
+        .prev-btn:hover:not(:disabled) {
+            background: #e2e8f0;
+        }
+
+        .next-btn {
+            background: var(--primary);
+            color: white;
+        }
+
+        .next-btn:hover:not(:disabled) {
+            background: var(--secondary);
+            box-shadow: 0 4px 12px rgba(99, 102, 241, 0.3);
+        }
+
+        .timer {
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.05); }
+            100% { transform: scale(1); }
+        }
+
+        .results {
+            background: white;
+            border-radius: 1.5rem;
+            padding: 2.5rem;
+            box-shadow: 0 8px 32px rgba(31, 38, 135, 0.15);
+        }
+
+        .results-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .score-display {
+            font-size: 2.5rem;
+            color: var(--primary);
+            margin: 1rem 0;
+        }
+
+        .question-review {
+            background: var(--background);
+            padding: 1.5rem;
+            border-radius: 1rem;
+            margin: 1.5rem 0;
+            border-left: 4px solid var(--primary);
+        }
+
+        .answer-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            margin: 0.5rem 0;
+        }
+
+        .correct .answer-status {
+            color: var(--correct);
+        }
+
+        .incorrect .answer-status {
+            color: var(--incorrect);
+        }
+
+        .explanation {
+            color: #64748b;
+            margin-top: 1rem;
+            padding-left: 1rem;
+            border-left: 3px solid #cbd5e1;
+        }
+
+        @media (max-width: 768px) {
+            body {
+                padding: 1rem;
+            }
+
+            .quiz-container {
+                padding: 1.5rem;
+            }
+
+            .options-grid {
+                grid-template-columns: 1fr;
+            }
+
+            .question-text {
+                font-size: 1.2rem;
+            }
+
+            .stats {
+                flex-direction: column;
+                gap: 1rem;
+            }
+
+            .stat-box {
+                padding: 0.6rem 1rem;
+            }
+
+            .nav-btn {
+                width: 100%;
+                justify-content: center;
+            }
+
+            .navigation {
+                flex-direction: column;
+            }
+        }
+
+        @media (max-width: 480px) {
+            .question-text {
+                font-size: 1.1rem;
+            }
+
+            .option-btn {
+                padding: 1rem;
+            }
+
+            .results {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <div class="header">
+            <div class="stats">
+                <div class="stat-box">
+                    🏆 Skor: <span id="score">0</span>
+                </div>
+                <div class="stat-box timer">
+                    ⏳ <span id="timer">30</span>s
+                </div>
+            </div>
+        </div>
+        
+        <div class="progress-container">
+            <div class="progress-bar" style="width: 0%"></div>
+        </div>
+
+        <div class="question-box" id="question-container"></div>
+    </div>
+
+    <div class="results" id="results" style="display: none;"></div>
+
+    <script>
+        class Quiz {
+            constructor() {
+                this.questions = this.shuffle([
+                    {
+                        question: "Bagaimana mengatakan 'Selamat pagi' dalam bahasa Spanyol? 🌅",
+                        options: ["Buenos días", "Buenas tardes", "Buenas noches", "Hola"],
+                        answer: 0,
+                        explanation: "'Buenos días' digunakan pada pagi hari hingga siang (sampai sekitar pukul 12.00)"
+                    },
+                    {
+                        question: "Apa arti 'gracias' dalam bahasa Indonesia? 🙏",
+                        options: ["Tolong", "Maaf", "Terima kasih", "Selamat tinggal"],
+                        answer: 2,
+                        explanation: "'Gracias' adalah ungkapan terima kasih yang paling umum digunakan dalam bahasa Spanyol"
+                    },
+                    {
+                        question: "Manakah yang berarti 'keluarga'? 👨👩👧👦",
+                        options: ["Familia", "Amigo", "Escuela", "Comida"],
+                        answer: 0,
+                        explanation: "'Familia' berarti keluarga, sedangkan 'Amigo' berarti teman"
+                    }
+                ]);
+                
+                this.currentQuestion = 0;
+                this.score = 0;
+                this.timeLeft = 30;
+                this.timerId = null;
+                this.userAnswers = new Array(this.questions.length).fill(null);
+                
+                this.init();
+            }
+
+            init() {
+                this.showQuestion();
+                this.startTimer();
+                this.updateProgress();
+            }
+
+            shuffle(array) {
+                return array.sort(() => Math.random() - 0.5);
+            }
+
+            showQuestion() {
+                const question = this.questions[this.currentQuestion];
+                const hasAnswered = this.userAnswers[this.currentQuestion] !== null;
+                
+                const questionHTML = `
+                    <div class="question-number">Pertanyaan ${this.currentQuestion + 1} dari ${this.questions.length}</div>
+                    <div class="question-text">${question.question}</div>
+                    <div class="options-grid">
+                        ${question.options.map((option, index) => `
+                            <button class="option-btn 
+                                ${this.userAnswers[this.currentQuestion] === index ? 'selected' : ''}
+                                ${hasAnswered ? 
+                                    (index === question.answer ? 'correct' : 
+                                    (this.userAnswers[this.currentQuestion] === index ? 'incorrect' : '')) : ''}" 
+                                onclick="quiz.selectAnswer(${index})"
+                                ${hasAnswered ? 'disabled' : ''}>
+                                <span class="option-letter">${String.fromCharCode(65 + index)}.</span> ${option}
+                            </button>
+                        `).join('')}
+                    </div>
+                    <div class="navigation">
+                        <button class="nav-btn prev-btn" onclick="quiz.prevQuestion()" 
+                            ${this.currentQuestion === 0 ? 'disabled' : ''}>
+                            ← Kembali
+                        </button>
+                        <button class="nav-btn next-btn" 
+                            onclick="${this.currentQuestion === this.questions.length - 1 ? 'quiz.showResults()' : 'quiz.nextQuestion()'}" 
+                            ${!hasAnswered ? 'disabled' : ''}>
+                            ${this.currentQuestion === this.questions.length - 1 ? 'Selesai 🎯' : 'Lanjut →'}
+                        </button>
+                    </div>
+                `;
+                
+                document.getElementById('question-container').innerHTML = questionHTML;
+                document.getElementById('score').textContent = this.score;
+                this.updateProgress();
+            }
+
+            selectAnswer(index) {
+                if (this.userAnswers[this.currentQuestion] !== null) return;
+                
+                const question = this.questions[this.currentQuestion];
+                this.userAnswers[this.currentQuestion] = index;
+                
+                if (index === question.answer) {
+                    this.score += 10;
+                    document.getElementById('score').textContent = this.score;
+                }
+                
+                clearInterval(this.timerId);
+                this.showQuestion();
+            }
+
+            nextQuestion() {
+                if (this.currentQuestion < this.questions.length - 1) {
+                    this.currentQuestion++;
+                    this.resetTimer();
+                    this.showQuestion();
+                }
+            }
+
+            prevQuestion() {
+                if (this.currentQuestion > 0) {
+                    this.currentQuestion--;
+                    this.resetTimer();
+                    this.showQuestion();
+                }
+            }
+
+            startTimer() {
+                this.timerId = setInterval(() => {
+                    this.timeLeft--;
+                    document.getElementById('timer').textContent = this.timeLeft;
+                    
+                    if (this.timeLeft <= 0) {
+                        clearInterval(this.timerId);
+                        this.nextQuestion();
+                    }
+                }, 1000);
+            }
+
+            resetTimer() {
+                clearInterval(this.timerId);
+                this.timeLeft = 30;
+                document.getElementById('timer').textContent = this.timeLeft;
+                this.startTimer();
+            }
+
+            updateProgress() {
+                const progress = (this.currentQuestion / this.questions.length) * 100;
+                document.querySelector('.progress-bar').style.width = `${progress}%`;
+            }
+
+            showResults() {
+                clearInterval(this.timerId);
+                const resultsHTML = `
+                    <div class="results-header">
+                        <h2>🏁 Hasil Kuis</h2>
+                        <div class="score-display">${this.score}/${this.questions.length * 10}</div>
+                    </div>
+                    <div class="review-section">
+                        ${this.questions.map((q, i) => {
+                            const userAnswer = this.userAnswers[i];
+                            const isCorrect = userAnswer === q.answer;
+                            return `
+                                <div class="question-review ${isCorrect ? 'correct' : 'incorrect'}">
+                                    <div class="question-text">${q.question}</div>
+                                    <div class="answer-status">
+                                        ${isCorrect ? '✅' : '❌'} 
+                                        Jawaban Anda: ${q.options[userAnswer] || 'Tidak dijawab'}
+                                    </div>
+                                    ${!isCorrect ? `
+                                        <div class="correct-answer">
+                                            🎯 Jawaban Benar: ${q.options[q.answer]}
+                                        </div>
+                                    ` : ''}
+                                    <div class="explanation">
+                                        📚 Penjelasan: ${q.explanation}
+                                    </div>
+                                </div>
+                            `;
+                        }).join('')}
+                    </div>
+                    <button class="nav-btn next-btn" onclick="location.reload()" style="width: 100%; margin-top: 2rem;">
+                        Main Lagi 🔄
+                    </button>
+                `;
+                
+                document.getElementById('results').innerHTML = resultsHTML;
+                document.querySelector('.quiz-container').style.display = 'none';
+                document.getElementById('results').style.display = 'block';
+            }
+        }
+
+        const quiz = new Quiz();
+    </script>
+</body>
+</html>
